@@ -3,12 +3,14 @@ package com.chinmay.itunesappwednesday.util
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.BindingAdapter
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.RecyclerView
+import com.bumptech.glide.Glide
 import com.chinmay.itunesappwednesday.util.extensions.getParentActivity
 
 @BindingAdapter("mutableText")
@@ -37,4 +39,14 @@ fun setMutableVisibility(view: View, visibility: MutableLiveData<Int>?) {
 fun watcher(view: EditText, textWatcher: TextWatcher){
 
     view.addTextChangedListener(textWatcher)
+}
+
+
+@BindingAdapter("imageUrl")
+fun setImageResource(view: ImageView,imageUrl:String){
+
+    val context = view.context
+
+    Glide.with(context).load(imageUrl).into(view)
+
 }
