@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.chinmay.itunesappwednesday.R
 import com.chinmay.itunesappwednesday.databinding.ActivitySearchResultsBinding
@@ -23,7 +24,7 @@ class ItunesSearchActivity: AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_search_results)
-        binding.recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false)
+        binding.recyclerView.layoutManager = GridLayoutManager(this, 2)
 
         viewModel = ViewModelProviders.of(this).get(ItunesSearchListViewModel::class.java)
         viewModel.errorMessage.observe(this, Observer {

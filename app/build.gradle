@@ -70,4 +70,5 @@ dependencies {
 
     // Support Design
     implementation "com.android.support:design:$android_support_version"
+    implementation 'androidx.cardview:cardview:1.0.0'
 }

@@ -1,8 +1,12 @@
 package com.chinmay.itunesappwednesday.ui
 
+import android.content.Context
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
+import android.view.WindowManager
+import android.view.inputmethod.InputMethodManager
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import com.chinmay.itunesappwednesday.R
 import com.chinmay.itunesappwednesday.model.ItunesDataModel
@@ -84,6 +88,8 @@ class ItunesSearchListViewModel:BaseViewModel() {
         super.onCleared()
         subscription.dispose()
     }
+
+
 
 
 }
