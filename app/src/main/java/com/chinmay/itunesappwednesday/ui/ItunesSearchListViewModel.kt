@@ -1,24 +1,31 @@
 package com.chinmay.itunesappwednesday.ui
 
+import android.app.Application
 import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
+import android.os.Build
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
-import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
-import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.MutableLiveData
 import com.chinmay.itunesappwednesday.R
+import com.chinmay.itunesappwednesday.model.ItunesDAO
 import com.chinmay.itunesappwednesday.model.ItunesDataModel
 import com.chinmay.itunesappwednesday.network.ItunesApi
 import com.chinmay.itunesappwednesday.viewmodel.BaseViewModel
 import com.chinmay.wednesdayitunesapp.ui.post.ItunesListAdapter
+import io.reactivex.Observable
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
 import javax.inject.Inject
 
-class ItunesSearchListViewModel:BaseViewModel() {
+class ItunesSearchListViewModel(private val itunesDAO: ItunesDAO):BaseViewModel() {
+
+    var isConn:Boolean = false
+
     @Inject
     lateinit var itunesApi: ItunesApi
     var itunesListAdapter:ItunesListAdapter =  ItunesListAdapter()
@@ -29,13 +36,17 @@ class ItunesSearchListViewModel:BaseViewModel() {
 
     private lateinit var subscription: Disposable
 
+
     val editText = MutableLiveData<String>()
     var queryString: String = ""
 
 
 
     fun onClickSearch(){
-        searchDetails(queryString)
+
+            searchDetails(queryString)
+
+
     }
 
     var queryTextWatcher: TextWatcher = object: TextWatcher {
@@ -48,22 +59,42 @@ class ItunesSearchListViewModel:BaseViewModel() {
         }
 
         override fun onTextChanged(p0: CharSequence?, p1: Int, p2: Int, p3: Int) {
-            //  Log.i("during",p0.toString())
         }
 
     }
 
-    private fun searchDetails(inputQuery: String) {
-        subscription = itunesApi.getSearchResults(inputQuery)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .doOnSubscribe { onRetrieveListStart() }
-            .doOnTerminate { onRetrieveListFinish() }
-            .subscribe(
 
-                { response -> onRetrieveSuccess(response) },
-                { onRetrieveError() }
-            )
+    private fun searchDetails(inputQuery: String) {
+        if(isConn) {
+            subscription =
+                    itunesApi.getSearchResults(inputQuery).concatMap { apiItunesList ->
+                    itunesDAO.insertAll(*apiItunesList.results.toTypedArray())
+                    Observable.just(apiItunesList.results) }
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .doOnSubscribe { onRetrieveListStart() }
+                .doOnTerminate { onRetrieveListFinish() }
+                .subscribe(
+                    { result ->   onRetrieveSuccess(result)},
+                    { onRetrieveError() }
+                )
+        }
+        else{
+            var conditionDB = "%$inputQuery%"
+            subscription =
+                Observable.fromCallable { itunesDAO.getParticular(conditionDB) }
+                    .concatMap { dbItunesList ->
+                        Observable.just(dbItunesList)
+                    }
+                    .subscribeOn(Schedulers.io())
+                    .observeOn(AndroidSchedulers.mainThread())
+                    .doOnSubscribe { onRetrieveListStart() }
+                    .doOnTerminate { onRetrieveListFinish() }
+                    .subscribe(
+                        { result -> onRetrieveSuccess(result) },
+                        { onRetrieveError() }
+                    )
+        }
     }
 
     private fun onRetrieveListFinish() {
@@ -80,8 +111,8 @@ class ItunesSearchListViewModel:BaseViewModel() {
         errorMessage.value = R.string.post_error
     }
 
-    private fun onRetrieveSuccess(response: ItunesDataModel.Response) {
-        itunesListAdapter.updatePostList(response.results)
+    private fun onRetrieveSuccess(response: List<ItunesDataModel.Results>) {
+        itunesListAdapter.updatePostList(response)
     }
 
     override fun onCleared() {

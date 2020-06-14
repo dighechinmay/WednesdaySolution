@@ -26,7 +26,7 @@ class ItunesListAdapter: RecyclerView.Adapter<ItunesListAdapter.ViewHolder>() {
         return if(::postList.isInitialized) postList.size else 0
     }
 
-    fun updatePostList(postList:List<ItunesDataModel.Results>){
+    fun updatePostList(postList: List<ItunesDataModel.Results>){
         this.postList = postList
         notifyDataSetChanged()
     }
